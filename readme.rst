@@ -1,5 +1,5 @@
 A little bridge that allows you to perform 1d curve fits using 
-scipy minimize.
+scipy minimize. 
 
 Basically I needed this kind of code because there are no parameter bounds 
 in ``scipy.curve_fit`` (see `this SO question <http://stackoverflow.com/q/16760788/7918>`__), 
@@ -11,7 +11,8 @@ so here is a small utility that can:
 2. Allows you to transparently "disable" parameters --- that is fix it at 
    initial value. 
     
-For examples see attached notebook. 
+For examples see `example notebook <http://nbviewer.ipython.org/github/jbzdak/scipy-curve-minimizer/blob/master/examples/fit_with_bounds.ipynb>`__. 
+
 
 
 

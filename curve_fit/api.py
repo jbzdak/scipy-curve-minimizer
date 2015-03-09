@@ -107,8 +107,8 @@ class Parameters(object):
         self.param_map[parameter.name] = parameter
         self.param_list.append(parameter)
 
-    def get_initial(self):
-        return [p.initial_value for p in self.param_list if p.enabled]
+    def get_initial(self, also_disabled=False):
+        return [p.initial_value for p in self.param_list if p.enabled or also_disabled]
 
     def get_bounds(self):
         return [p.bounds for p in self.param_list if p.enabled]
@@ -153,6 +153,9 @@ class Parameters(object):
             return self.strip_params(params)
         return params
 
+    def __len__(self):
+        return len(self.param_list)
+
     def __str__(self):
         return u"<Parameters {}>".format(self.param_list)
 
@@ -165,8 +168,8 @@ class FitResult(object):
         super(FitResult, self).__init__()
         assert isinstance(fit_data, FitInputData)
         self.fit_data = fit_data
-        self.profile = fit_data.fit_y
-        self.geometry = fit_data.fit_x
+        self.profile = self.fit_y = fit_data.fit_y
+        self.geometry = self.fit_x = fit_data.fit_x
         self.params = params
         self.function = function
         self.fit = fit
@@ -177,8 +180,8 @@ class FitResult(object):
 
     def __initialize(self):
         self.fitted_profile = self.function(self.geometry)
-        self.plot_geometry = self.fit_data.plot_x
-        self.plot_profile = self.function(self.plot_geometry)
+        self.plot_geometry = self.plot_x = self.fit_data.plot_x
+        self.plot_profile = self.plot_y = self.function(self.plot_geometry)
 
         self.chsisq, self.chisq_prob, self.ddof, self.chisq_sum_elems = \
             chisquared(self.profile, self.fitted_profile, self.fit_data.fit_sigma_y, len(self.params.param_names))
@@ -186,7 +189,7 @@ class FitResult(object):
 
     def params_as_dataframe(self):
         result = []
-        data = self.fit.parameters.param_values.items()
+        data = self.params.param_values.items()
         data.append(("chisq", self.chsisq))
         data.append(("chisq ddof", self.chsisq/self.ddof))
         data.append(("chisq prob", self.chisq_prob))
@@ -290,7 +293,6 @@ class FitPerformer(six.with_metaclass(abc.ABCMeta, object)):
 
     FitResultClass = FitResult
 
-
     def __init__(self, fit_data, parameters, fit_name="misc_fit"):
         """
 
@@ -320,14 +322,12 @@ class FitPerformer(six.with_metaclass(abc.ABCMeta, object)):
 
         self.fit_name = fit_name
 
-
     @property
     def fit_id(self):
         sha = hashlib.sha256()
         sha.update(self.fit_data.fit_id)
         sha.update(self.fit_name if self.fit_name is not None else "")
         return sha.hexdigest()
-
 
     def update_dict_for_pandas(self, dict):
         dict = self.fit_data.update_dict_for_pandas(dict)
@@ -341,7 +341,7 @@ class FitPerformer(six.with_metaclass(abc.ABCMeta, object)):
         return None
 
     def _fill_fit_result(self, fitted_function):
-        result = self.FitResultClass(self, self.fit_data, self.parameters, fitted_function)
+        result = self.FitResultClass(self, self.fit_data, self.parameters, self.f)
         self.fit_result = result
         return result
 
@@ -364,13 +364,11 @@ class FitPerformer(six.with_metaclass(abc.ABCMeta, object)):
 
         return result
 
-
     def __check_disabled_pars(self):
         if self.parameters.has_disabled_params and not self._IS_READY_FOR_DISABLED_PARAMETERS:
             raise ValueError("This fit_performed is not ready for disabled "
                              "parameters, and was instantiated with parameters "
                              "objects from which some are disabled")
-
 
 class SimpleMinimizeFit(FitPerformer):
 

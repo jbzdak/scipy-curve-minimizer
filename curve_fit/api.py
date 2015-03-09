@@ -183,6 +183,8 @@ class FitResult(object):
         self.plot_geometry = self.plot_x = self.fit_data.plot_x
         self.plot_profile = self.plot_y = self.function(self.plot_geometry)
 
+        # print((self.profile, self.fitted_profile, self.fit_data.fit_sigma_y, len(self.params.param_names)))
+
         self.chsisq, self.chisq_prob, self.ddof, self.chisq_sum_elems = \
             chisquared(self.profile, self.fitted_profile, self.fit_data.fit_sigma_y, len(self.params.param_names))
         self.rsquared = calculate_r_squared(self.profile, self.fitted_profile)
@@ -341,7 +343,7 @@ class FitPerformer(six.with_metaclass(abc.ABCMeta, object)):
         return None
 
     def _fill_fit_result(self, fitted_function):
-        result = self.FitResultClass(self, self.fit_data, self.parameters, self.f)
+        result = self.FitResultClass(self, self.fit_data, self.parameters, fitted_function)
         self.fit_result = result
         return result
 

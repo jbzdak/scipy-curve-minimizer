@@ -179,7 +179,7 @@ class FitResult(object):
         self.__initialize()
 
     def __initialize(self):
-        self.fitted_profile = self.function(self.geometry)
+        self.fitted_y = self.fitted_profile = self.function(self.geometry)
         self.plot_geometry = self.plot_x = self.fit_data.plot_x
         self.plot_profile = self.plot_y = self.function(self.plot_geometry)
 
